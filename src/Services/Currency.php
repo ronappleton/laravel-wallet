@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace Appleton\LaravelWallet\Services;
 
 use Appleton\LaravelWallet\Contracts\CurrencyService;
+use Appleton\LaravelWallet\Exceptions\CurrencyAttributeNotSet;
+use Appleton\LaravelWallet\Exceptions\CurrencyModelNotSet;
+use Appleton\LaravelWallet\Exceptions\InvalidModel;
+use Appleton\LaravelWallet\Exceptions\InvalidScalarType;
 use BackedEnum;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
-use RuntimeException;
 
 class Currency implements CurrencyService
 {
@@ -41,7 +44,7 @@ class Currency implements CurrencyService
         $attribute = config('wallet.models.currency.currency_attribute', 'currency');
 
         if (! is_scalar($attribute)) {
-            throw new RuntimeException(
+            throw new InvalidScalarType(
                 'Currency attribute must be a scalar value in config/wallet.php'
             );
         }
@@ -49,7 +52,7 @@ class Currency implements CurrencyService
         $attributeValue = $currency->getAttribute((string) $attribute);
 
         if (is_null($attributeValue)) {
-            throw new RuntimeException(
+            throw new CurrencyAttributeNotSet(
                 'Currency attribute must be set in config/wallet.php'
             );
         }
@@ -74,13 +77,13 @@ class Currency implements CurrencyService
         $model = config('wallet.models.currency.model');
 
         if (! is_string($model) || ! class_exists($model)) {
-            throw new RuntimeException(
+            throw new CurrencyModelNotSet(
                 'Currency model must be set in config/wallet.php'
             );
         }
 
         if (! is_subclass_of($model, Model::class)) {
-            throw new RuntimeException(
+            throw new InvalidModel(
                 'Currency model must be an instance of Illuminate\Database\Eloquent\Model'
             );
         }

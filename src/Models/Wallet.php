@@ -16,6 +16,12 @@ use Appleton\LaravelWallet\Events\TransferCompletedEvent;
 use Appleton\LaravelWallet\Events\TransferStartedEvent;
 use Appleton\LaravelWallet\Events\WithdrawalCompletedEvent;
 use Appleton\LaravelWallet\Events\WithdrawalStartedEvent;
+use Appleton\LaravelWallet\Exceptions\CurrencyMisMatch;
+use Appleton\LaravelWallet\Exceptions\InsufficientFunds;
+use Appleton\LaravelWallet\Exceptions\InvalidDeletion;
+use Appleton\LaravelWallet\Exceptions\InvalidTransactionType;
+use Appleton\LaravelWallet\Exceptions\InvalidUpdate;
+use Appleton\LaravelWallet\Exceptions\UnsupportedCurrencyConversion;
 use Carbon\Carbon;
 use Database\Factories\WalletFactory;
 use Illuminate\Contracts\Container\BindingResolutionException;
@@ -26,7 +32,6 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use RuntimeException;
 
 /**
  * @property-read int|string $id
@@ -117,7 +122,7 @@ class Wallet extends Model implements WalletModel
 
         /** @var Wallet $wallet */
         if ($this->currency !== $wallet->currency && $converter === null) {
-            throw new RuntimeException('Cannot transfer between wallets with different currencies');
+            throw new CurrencyMisMatch('Cannot transfer between wallets with different currencies');
         }
 
         $metaObject = app()->make(WalletMeta::class)->setMetas($meta);
@@ -166,11 +171,11 @@ class Wallet extends Model implements WalletModel
         });
 
         static::updating(function (self $wallet): never {
-            throw new RuntimeException('Updating wallets is not supported');
+            throw new InvalidUpdate('Updating wallets is not supported');
         });
 
         static::deleting(function (self $wallet): never {
-            throw new RuntimeException('Deleting wallets is not supported');
+            throw new InvalidDeletion('Deleting wallets is not supported');
         });
     }
 
@@ -187,7 +192,7 @@ class Wallet extends Model implements WalletModel
     protected function createTransaction(string $type, float $amount, ?string $description, WalletMeta $meta): int|string
     {
         if (! in_array($type, ['deposit', 'withdraw'])) {
-            throw new RuntimeException('Invalid transaction type');
+            throw new InvalidTransactionType('Invalid transaction type');
         }
 
         return $this->getWalletTransactionModel()::create([
@@ -208,7 +213,7 @@ class Wallet extends Model implements WalletModel
     ): float {
         /** @var Wallet $wallet */
         if (! $converter->isSupported($this->currency, $wallet->currency)) {
-            throw new RuntimeException('Currency conversion not supported');
+            throw new UnsupportedCurrencyConversion('Currency conversion not supported');
         }
 
         event(new ConversionStartedEvent($this, $wallet, $amount, $meta, $converter));
@@ -231,7 +236,7 @@ class Wallet extends Model implements WalletModel
         $allowNegativeBalances = config('wallet.settings.allow_negative_balances', false);
 
         if (! $allowNegativeBalances && $this->balance() - $amount < 0) {
-            throw new RuntimeException('Insufficient funds');
+            throw new InsufficientFunds('Insufficient funds');
         }
     }
 }

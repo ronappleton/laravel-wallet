@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Appleton\LaravelWallet\Models;
 
+use Appleton\LaravelWallet\Exceptions\InvalidDeletion;
+use Appleton\LaravelWallet\Exceptions\InvalidUpdate;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -48,11 +50,11 @@ class WalletTransaction extends Model
         parent::boot();
 
         static::updating(function (Model $transaction) {
-            throw new \RuntimeException('Cannot update wallet transaction.');
+            throw new InvalidUpdate('Cannot update wallet transaction.');
         });
 
         static::deleting(function (Model $transaction): never {
-            throw new \RuntimeException('Cannot delete wallet transaction.');
+            throw new InvalidDeletion('Cannot delete wallet transaction.');
         });
     }
 }

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Appleton\LaravelWallet\Helpers;
 
 use Appleton\LaravelWallet\Contracts\WalletMeta as WalletMetaContract;
-use RuntimeException;
+use Appleton\LaravelWallet\Exceptions\MetaKeyExists;
 
 class WalletMeta implements WalletMetaContract
 {
@@ -59,7 +59,7 @@ class WalletMeta implements WalletMetaContract
         }
 
         if (array_key_exists($key, $this->meta)) {
-            throw new RuntimeException("Meta key $key already exists.");
+            throw new MetaKeyExists("Meta key $key already exists.");
         }
 
         $this->meta[$key] = $value;
