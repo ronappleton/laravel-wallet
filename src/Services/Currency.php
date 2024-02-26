@@ -40,13 +40,13 @@ class Currency implements CurrencyService
     {
         $attribute = config('wallet.models.currency.currency_attribute', 'currency');
 
-        if (!is_scalar($attribute)) {
+        if (! is_scalar($attribute)) {
             throw new RuntimeException(
                 'Currency attribute must be a scalar value in config/wallet.php'
             );
         }
 
-        $attributeValue = $currency->getAttribute((string)$attribute);
+        $attributeValue = $currency->getAttribute((string) $attribute);
 
         if (is_null($attributeValue)) {
             throw new RuntimeException(
@@ -55,7 +55,6 @@ class Currency implements CurrencyService
         }
 
         assert(is_string($attributeValue), 'Currency attribute must be a string or a number');
-
 
         return $attributeValue;
     }
@@ -74,7 +73,7 @@ class Currency implements CurrencyService
     {
         $model = config('wallet.models.currency.model');
 
-        if (!is_string($model) || !class_exists($model)) {
+        if (! is_string($model) || ! class_exists($model)) {
             throw new RuntimeException(
                 'Currency model must be set in config/wallet.php'
             );

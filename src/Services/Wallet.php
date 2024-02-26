@@ -39,7 +39,7 @@ class Wallet implements WalletContract
     }
 
     public function getWallet(Model $owner, int|string|Model|BackedEnum|null $currency = null, ?string $name = null
-    ): Model|null {
+    ): ?Model {
         $wallets = $this->getWallets($owner, $currency, $name);
 
         if ($wallets->count() > 1) {

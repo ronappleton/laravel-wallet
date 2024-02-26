@@ -8,6 +8,14 @@ use Appleton\LaravelWallet\Casts\IdColumnCast;
 use Appleton\LaravelWallet\Contracts\CurrencyConverter;
 use Appleton\LaravelWallet\Contracts\WalletMeta;
 use Appleton\LaravelWallet\Contracts\WalletModel;
+use Appleton\LaravelWallet\Events\ConversionCompletedEvent;
+use Appleton\LaravelWallet\Events\ConversionStartedEvent;
+use Appleton\LaravelWallet\Events\DepositCompletedEvent;
+use Appleton\LaravelWallet\Events\DepositStartedEvent;
+use Appleton\LaravelWallet\Events\TransferCompletedEvent;
+use Appleton\LaravelWallet\Events\TransferStartedEvent;
+use Appleton\LaravelWallet\Events\WithdrawalCompletedEvent;
+use Appleton\LaravelWallet\Events\WithdrawalStartedEvent;
 use Carbon\Carbon;
 use Database\Factories\WalletFactory;
 use Illuminate\Contracts\Container\BindingResolutionException;
@@ -57,29 +65,44 @@ class Wallet extends Model implements WalletModel
     }
 
     /**
-     * @param array<string, mixed>|WalletMeta $meta
+     * @param  array<string, mixed>|WalletMeta  $meta
+     *
      * @throws BindingResolutionException
      */
     public function deposit(float $amount, string $description = '', array|WalletMeta $meta = []): int
     {
+        event(new DepositStartedEvent($this, $amount, $description, $meta));
+
         $metaObject = $meta instanceof WalletMeta ? $meta : app()->make(WalletMeta::class)->setMetas($meta);
 
-        return $this->createTransaction('deposit', $amount, $description, $metaObject);
+        $transactionId = $this->createTransaction('deposit', $amount, $description, $metaObject);
+
+        event(new DepositCompletedEvent($this, $amount, $transactionId, $description, $metaObject));
+
+        return $transactionId;
     }
 
     /**
-     * @param array<string, mixed>|WalletMeta $meta
+     * @param  array<string, mixed>|WalletMeta  $meta
+     *
      * @throws BindingResolutionException
      */
     public function withdraw(float $amount, string $description = '', array|WalletMeta $meta = []): int
     {
+        event(new WithdrawalStartedEvent($this, $amount, $description, $meta));
+
         $metaObject = $meta instanceof WalletMeta ? $meta : app()->make(WalletMeta::class)->setMetas($meta);
 
-        return $this->createTransaction('withdraw', $amount, $description, $metaObject);
+        $transactionId = $this->createTransaction('withdraw', $amount, $description, $metaObject);
+
+        event(new WithdrawalCompletedEvent($this, $amount, $transactionId, $description, $metaObject));
+
+        return $transactionId;
     }
 
     /**
-     * @param array<string, mixed> $meta
+     * @param  array<string, mixed>  $meta
+     *
      * @throws BindingResolutionException
      */
     public function transfer(
@@ -88,6 +111,8 @@ class Wallet extends Model implements WalletModel
         array $meta = [],
         ?CurrencyConverter $converter = null
     ): void {
+        event(new TransferStartedEvent($this, $wallet, $amount, $meta, $converter));
+
         /** @var Wallet $wallet */
         if ($this->currency !== $wallet->currency && $converter === null) {
             throw new RuntimeException('Cannot transfer between wallets with different currencies');
@@ -104,6 +129,8 @@ class Wallet extends Model implements WalletModel
 
             $wallet->deposit($amount, 'transfer', $metaObject->setFromWalletId($this->id));
         });
+
+        event(new TransferCompletedEvent($this, $wallet, $amount, $metaObject, $converter));
     }
 
     public function deposits(): Collection
@@ -155,7 +182,7 @@ class Wallet extends Model implements WalletModel
         return config('wallet.models.transaction.model', WalletTransaction::class);
     }
 
-    protected function createTransaction(string $type, float $amount, ?string $description, WalletMeta $meta): int
+    protected function createTransaction(string $type, float $amount, ?string $description, WalletMeta $meta): int|string
     {
         if (! in_array($type, ['deposit', 'withdraw'])) {
             throw new RuntimeException('Invalid transaction type');
@@ -182,6 +209,8 @@ class Wallet extends Model implements WalletModel
             throw new RuntimeException('Currency conversion not supported');
         }
 
+        event(new ConversionStartedEvent($this, $wallet, $amount, $meta, $converter));
+
         $conversionData = [
             'exchange_rate' => $converter->getRate($this->currency, $wallet->currency),
             'converter' => $converter::class,
@@ -189,6 +218,8 @@ class Wallet extends Model implements WalletModel
         ];
 
         $meta->setMeta('conversion', $conversionData);
+
+        event(new ConversionCompletedEvent($this, $wallet, $amount, $meta, $converter));
 
         return $conversionData['converted_amount'];
     }

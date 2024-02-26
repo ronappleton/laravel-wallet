@@ -11,7 +11,7 @@ use Illuminate\Support\Str;
 class IdColumnCast implements CastsAttributes
 {
     /**
-     * @param int|string $value
+     * @param  int|string  $value
      */
     public function get(Model $model, string $key, $value, array $attributes): string|int
     {
@@ -19,7 +19,7 @@ class IdColumnCast implements CastsAttributes
     }
 
     /**
-     * @param int|string $value
+     * @param  int|string  $value
      */
     public function set(Model $model, string $key, $value, array $attributes): string|int
     {

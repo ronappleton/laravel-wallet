@@ -15,7 +15,7 @@ interface WalletMeta extends Arrayable
     public function setMeta(string $key, mixed $value): self;
 
     /**
-     * @param array<string, mixed> $meta
+     * @param  array<string, mixed>  $meta
      */
     public function setMetas(array $meta): self;
 }
