@@ -1,0 +1,42 @@
+{
+    "name": "ronappleton/laravel-wallet",
+    "description": "Simple wallet system package for laravel",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Appleton\\LaravelWallet\\": "src/",
+            "Tests\\": "tests/",
+            "Database\\Factories\\": "database/factories/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Ron Appleton",
+            "email": "ron.appleton@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require-dev": {
+        "orchestra/testbench": "8.*",
+        "laravel/framework": "10.*",
+        "laravel/pint": "dev-main",
+        "larastan/larastan": "2.x-dev"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Appleton\\LaravelWallet\\ServiceProvider"
+            ],
+            "aliases": {
+                "Wallet": "Appleton\\LaravelWallet\\Facades\\Wallet"
+            }
+        }
+    },
+    "scripts": {
+        "analyse": "vendor/bin/pint",
+        "format": "vendor/bin/pint --write",
+        "test": "vendor/bin/phpunit",
+        "stan": "vendor/bin/phpstan analyse"
+    }
+}
