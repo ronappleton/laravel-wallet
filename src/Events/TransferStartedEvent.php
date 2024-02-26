@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Appleton\LaravelWallet\Events;
 
+use Appleton\LaravelWallet\Contracts\CurrencyConverter;
 use Appleton\LaravelWallet\Contracts\WalletModel as Wallet;
 use Illuminate\Foundation\Events\Dispatchable;
 
@@ -16,6 +17,7 @@ class TransferStartedEvent
         private readonly Wallet $toWallet,
         private readonly float $amount,
         private readonly array $meta,
+        private readonly CurrencyConverter $converter,
     ) {
     }
 
@@ -37,5 +39,10 @@ class TransferStartedEvent
     public function getMeta(): array
     {
         return $this->meta;
+    }
+
+    public function getConverter(): CurrencyConverter
+    {
+        return $this->converter;
     }
 }

@@ -16,8 +16,8 @@ class DepositCompletedEvent
         private readonly Wallet $wallet,
         private readonly float $amount,
         private readonly int|string $transactionId,
-        private readonly string $description = '',
-        private readonly array|WalletMeta $data = [])
+        private readonly string $description,
+        private readonly WalletMeta $meta)
     {
     }
 
@@ -41,8 +41,8 @@ class DepositCompletedEvent
         return $this->description;
     }
 
-    public function getData(): array|WalletMeta
+    public function getMeta(): WalletMeta
     {
-        return $this->data;
+        return $this->meta;
     }
 }

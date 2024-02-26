@@ -15,8 +15,8 @@ class WithdrawalStartedEvent
     public function __construct(
         private readonly Wallet $wallet,
         private readonly float $amount,
-        private readonly string $description = '',
-        private readonly array|WalletMeta $data = []
+        private readonly string $description,
+        private readonly array|WalletMeta $meta,
     ) {
     }
 
@@ -35,8 +35,8 @@ class WithdrawalStartedEvent
         return $this->description;
     }
 
-    public function getData(): array|WalletMeta
+    public function getMeta(): array|WalletMeta
     {
-        return $this->data;
+        return $this->meta;
     }
 }
