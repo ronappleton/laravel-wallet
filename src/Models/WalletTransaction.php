@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Appleton\LaravelWallet\Models;
 
+use Appleton\LaravelWallet\Contracts\WalletTransactionModel;
 use Appleton\LaravelWallet\Exceptions\InvalidDeletion;
 use Appleton\LaravelWallet\Exceptions\InvalidUpdate;
 use Illuminate\Database\Eloquent\Model;
@@ -18,7 +19,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property array $meta
  * @property Wallet $wallet
  */
-class WalletTransaction extends Model
+class WalletTransaction extends Model implements WalletTransactionModel
 {
     /**
      * @var array<int, string>
