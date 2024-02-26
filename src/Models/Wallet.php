@@ -91,6 +91,8 @@ class Wallet extends Model implements WalletModel
     {
         event(new WithdrawalStartedEvent($this, $amount, $description, $meta));
 
+        $this->checkBalance($amount);
+
         $metaObject = $meta instanceof WalletMeta ? $meta : app()->make(WalletMeta::class)->setMetas($meta);
 
         $transactionId = $this->createTransaction('withdraw', $amount, $description, $metaObject);
@@ -222,5 +224,14 @@ class Wallet extends Model implements WalletModel
         event(new ConversionCompletedEvent($this, $wallet, $amount, $meta, $converter));
 
         return $conversionData['converted_amount'];
+    }
+
+    private function checkBalance(float $amount): void
+    {
+        $allowNegativeBalances = config('wallet.settings.allow_negative_balances', false);
+
+        if (! $allowNegativeBalances && $this->balance() - $amount < 0) {
+            throw new RuntimeException('Insufficient funds');
+        }
     }
 }

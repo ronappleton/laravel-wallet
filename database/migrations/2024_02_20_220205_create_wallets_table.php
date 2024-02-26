@@ -20,6 +20,13 @@ return new class extends Migration
             $table->morphs('ownable');
 
             $table->timestamp('created_at')->useCurrent();
+
+            if (config('wallet.settings.one_wallet_per_currency', false)) {
+                $table->unique(['ownable_type', 'ownable_id', 'currency']);
+            }
+
+            $table->index(['ownable_type', 'ownable_id']);
+            $table->index('currency');
         });
     }
 
