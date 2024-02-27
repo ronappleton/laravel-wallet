@@ -5,7 +5,11 @@ declare(strict_types=1);
 namespace Tests\Unit\Helpers;
 
 use Appleton\LaravelWallet\Contracts\WalletMeta as WalletMetaContract;
+use Illuminate\Auth\Authenticatable;
+use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Container\BindingResolutionException;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Schema;
 use RuntimeException;
 use stdClass;
 use Tests\TestCase;
@@ -96,5 +100,36 @@ class WalletMetaTest extends TestCase
     {
         $meta = app()->make(WalletMetaContract::class);
         $this->assertIsArray($meta->toArray());
+    }
+
+    /**
+     * @throws BindingResolutionException
+     */
+    public function testToArrayWhenAuthenticated(): void
+    {
+        $this->actingAs($this->createUser());
+
+        $meta = app()->make(WalletMetaContract::class);
+        $this->assertIsArray($meta->toArray());
+    }
+
+    private function createUser(): AuthenticatableContract
+    {
+        Schema::create('users', function ($table) {
+            $table->id();
+        });
+
+        $user = new class extends Model implements AuthenticatableContract
+        {
+            use Authenticatable;
+
+            protected $table = 'users';
+
+            public $timestamps = false;
+        };
+
+        $user->save();
+
+        return $user;
     }
 }

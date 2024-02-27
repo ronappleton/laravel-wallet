@@ -5,19 +5,23 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use Appleton\LaravelWallet\Contracts\CurrencyConverter;
-use Appleton\LaravelWallet\Contracts\WalletMeta;
+use Appleton\LaravelWallet\Enums\TransactionType;
+use Appleton\LaravelWallet\Exceptions\CurrencyMisMatch;
+use Appleton\LaravelWallet\Exceptions\InsufficientFunds;
+use Appleton\LaravelWallet\Exceptions\UnsupportedCurrencyConversion;
 use Appleton\LaravelWallet\Models\Wallet as WalletModel;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\Schema;
-use ReflectionException;
-use RuntimeException;
 use Tests\TestCase;
 
 class WalletModelTest extends TestCase
 {
     use DatabaseMigrations;
 
+    /**
+     * @throws BindingResolutionException
+     */
     public function testDeposit(): void
     {
         $owner = $this->createOwner();
@@ -33,12 +37,28 @@ class WalletModelTest extends TestCase
             ->where('ownable_type', $owner::class)
             ->first();
 
-        $wallet->deposit(500);
+        $wallet->performTransaction(TransactionType::Deposit, 500);
 
         $this->assertEquals(500, $wallet->balance());
+
+        $transactions = $wallet->transactions()->get();
+
+        $this->assertCount(1, $transactions);
+        $this->assertEquals(500, $transactions->first()->amount);
+        $this->assertEquals(TransactionType::Deposit->value, $transactions->first()->type);
+        $this->assertEquals('USD', $transactions->first()->currency);
+        $this->assertEquals($wallet->getAttribute('id'), $transactions->first()->wallet_id);
+
+        $meta = $transactions->first()->meta;
+
+        $this->assertArrayHasKey('authenticated', $meta);
+        $this->assertEquals('Not Authenticated', $meta['authenticated']);
     }
 
-    public function testWithdraw(): void
+    /**
+     * @throws BindingResolutionException
+     */
+    public function testWithdrawInsufficientFunds(): void
     {
         $owner = $this->createOwner();
         $owner->setAttribute('id', 1);
@@ -53,12 +73,52 @@ class WalletModelTest extends TestCase
             ->where('ownable_type', $owner::class)
             ->first();
 
-        $wallet->deposit(500);
-        $wallet->withdraw(300);
+        $this->expectException(InsufficientFunds::class);
 
-        $this->assertEquals(200, $wallet->balance());
+        $wallet->performTransaction(TransactionType::Withdrawal, 300);
     }
 
+    /**
+     * @throws BindingResolutionException
+     */
+    public function testWithdraw(): void
+    {
+        $owner = $this->createOwner();
+        $owner->setAttribute('id', 1);
+
+        config(['wallet.settings.allow_negative_balances' => true]);
+
+        WalletModel::factory()->create([
+            'ownable_id' => $owner->getAttribute('id'),
+            'ownable_type' => $owner::class,
+            'currency' => 'USD',
+        ]);
+
+        $wallet = WalletModel::where('ownable_id', $owner->getAttribute('id'))
+            ->where('ownable_type', $owner::class)
+            ->first();
+
+        $wallet->performTransaction(TransactionType::Withdrawal, 300);
+
+        $this->assertEquals(-300.0, $wallet->balance());
+
+        $transactions = $wallet->transactions()->get();
+
+        $this->assertCount(1, $transactions);
+        $this->assertEquals(300.0, $transactions->first()->amount);
+        $this->assertEquals(TransactionType::Withdrawal->value, $transactions->first()->type);
+        $this->assertEquals('USD', $transactions->first()->currency);
+        $this->assertEquals($wallet->getAttribute('id'), $transactions->first()->wallet_id);
+
+        $meta = $transactions->first()->meta;
+
+        $this->assertArrayHasKey('authenticated', $meta);
+        $this->assertEquals('Not Authenticated', $meta['authenticated']);
+    }
+
+    /**
+     * @throws BindingResolutionException
+     */
     public function testTransactions(): void
     {
         $owner = $this->createOwner();
@@ -73,14 +133,17 @@ class WalletModelTest extends TestCase
             ->where('ownable_type', $owner::class)
             ->first();
 
-        $wallet->deposit(500);
-        $wallet->withdraw(300);
+        $wallet->performTransaction(TransactionType::Deposit, 500);
+        $wallet->performTransaction(TransactionType::Withdrawal, 300);
 
         $transactions = $wallet->transactions()->get();
 
         $this->assertCount(2, $transactions);
     }
 
+    /**
+     * @throws BindingResolutionException
+     */
     public function testDeposits()
     {
         $owner = $this->createOwner();
@@ -95,16 +158,19 @@ class WalletModelTest extends TestCase
             ->where('ownable_type', $owner::class)
             ->first();
 
-        $wallet->deposit(100);
-        $wallet->deposit(200);
-        $wallet->deposit(300);
-        $wallet->withdraw(300);
+        $wallet->performTransaction(TransactionType::Deposit, 100);
+        $wallet->performTransaction(TransactionType::Deposit, 200);
+        $wallet->performTransaction(TransactionType::Deposit, 300);
+        $wallet->performTransaction(TransactionType::Withdrawal, 300);
 
-        $deposits = $wallet->deposits();
+        $deposits = $wallet->deposits()->get();
 
         $this->assertCount(3, $deposits);
     }
 
+    /**
+     * @throws BindingResolutionException
+     */
     public function testWithdrawals()
     {
         $owner = $this->createOwner();
@@ -119,13 +185,13 @@ class WalletModelTest extends TestCase
             ->where('ownable_type', $owner::class)
             ->first();
 
-        $wallet->deposit(1000);
-        $wallet->withdraw(300);
-        $wallet->withdraw(200);
-        $wallet->withdraw(100);
-        $wallet->withdraw(200);
+        $wallet->performTransaction(TransactionType::Deposit, 1000);
+        $wallet->performTransaction(TransactionType::Withdrawal, 300);
+        $wallet->performTransaction(TransactionType::Withdrawal, 200);
+        $wallet->performTransaction(TransactionType::Withdrawal, 100);
+        $wallet->performTransaction(TransactionType::Withdrawal, 200);
 
-        $withdrawals = $wallet->withdrawals();
+        $withdrawals = $wallet->withdrawals()->get();
 
         $this->assertCount(4, $withdrawals);
     }
@@ -155,30 +221,8 @@ class WalletModelTest extends TestCase
     }
 
     /**
-     * @throws ReflectionException
      * @throws BindingResolutionException
      */
-    public function testInvalidTransactType(): void
-    {
-        $owner = $this->createOwner();
-        $owner->setAttribute('id', 1);
-
-        WalletModel::factory()->create([
-            'ownable_id' => $owner->getAttribute('id'),
-            'ownable_type' => $owner::class,
-        ]);
-
-        $wallet = WalletModel::where('ownable_id', $owner->getAttribute('id'))
-            ->where('ownable_type', $owner::class)
-            ->first();
-
-        $this->expectException(RuntimeException::class);
-
-        $reflection = new \ReflectionClass(get_class($wallet));
-        $method = $reflection->getMethod('createTransaction');
-        $method->invokeArgs($wallet, ['invalid', 500, null, app()->make(WalletMeta::class)]);
-    }
-
     public function testTransfer(): void
     {
         $owner = $this->createOwner();
@@ -205,8 +249,8 @@ class WalletModelTest extends TestCase
             ->skip(1)
             ->first();
 
-        $fromWallet->deposit(500);
-        $fromWallet->transfer($toWallet, 300);
+        $fromWallet->performTransaction(TransactionType::Deposit, 500);
+        $fromWallet->performTransaction(TransactionType::Transfer, 300, [], $toWallet);
 
         $this->assertEquals(200, $fromWallet->balance());
         $this->assertEquals(300, $toWallet->balance());
@@ -241,11 +285,11 @@ class WalletModelTest extends TestCase
             ->skip(1)
             ->first();
 
-        $fromWallet->deposit(500);
+        $fromWallet->performTransaction(TransactionType::Deposit, 500);
 
-        $this->expectException(RuntimeException::class);
+        $this->expectException(CurrencyMisMatch::class);
 
-        $fromWallet->transfer($toWallet, 300);
+        $fromWallet->performTransaction(TransactionType::Transfer, 300, [], $toWallet);
     }
 
     /**
@@ -277,14 +321,17 @@ class WalletModelTest extends TestCase
             ->skip(1)
             ->first();
 
-        $fromWallet->deposit(500);
+        $fromWallet->performTransaction(TransactionType::Deposit, 500);
 
-        $fromWallet->transfer($toWallet, 300, [], $this->createFakeConverter());
+        $fromWallet->performTransaction(TransactionType::Transfer, 300, [], $toWallet, $this->createFakeConverter());
 
         $this->assertEquals(200, $fromWallet->balance());
         $this->assertEquals(600, $toWallet->balance());
     }
 
+    /**
+     * @throws BindingResolutionException
+     */
     public function testTransferWithConverterFails(): void
     {
         $owner = $this->createOwner();
@@ -311,11 +358,11 @@ class WalletModelTest extends TestCase
             ->skip(1)
             ->first();
 
-        $fromWallet->deposit(500);
+        $fromWallet->performTransaction(TransactionType::Deposit, 500);
 
-        $this->expectException(RuntimeException::class);
+        $this->expectException(UnsupportedCurrencyConversion::class);
 
-        $fromWallet->transfer($toWallet, 300, [], $this->createFakeConverter(['USD', 'GBP']));
+        $fromWallet->performTransaction(TransactionType::Transfer, 300, [], $toWallet, $this->createFakeConverter(['USD', 'GBP']));
     }
 
     private function createFakeConverter(array $supportedCurrencies = ['USD', 'EUR']): CurrencyConverter

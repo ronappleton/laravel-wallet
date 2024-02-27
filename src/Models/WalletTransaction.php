@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Appleton\LaravelWallet\Models;
 
 use Appleton\LaravelWallet\Contracts\WalletTransactionModel;
+use Appleton\LaravelWallet\Enums\TransactionType;
 use Appleton\LaravelWallet\Exceptions\InvalidDeletion;
 use Appleton\LaravelWallet\Exceptions\InvalidUpdate;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -15,7 +17,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int|string $wallet_id
  * @property float $amount
  * @property string $type
- * @property string $description
  * @property array $meta
  * @property Wallet $wallet
  */
@@ -29,7 +30,6 @@ class WalletTransaction extends Model implements WalletTransactionModel
         'amount',
         'type',
         'currency',
-        'description',
         'meta',
     ];
 
@@ -44,6 +44,11 @@ class WalletTransaction extends Model implements WalletTransactionModel
     public function wallet(): BelongsTo
     {
         return $this->belongsTo(Wallet::class);
+    }
+
+    public function scopeTransactionType(Builder $query, TransactionType $type): Builder
+    {
+        return $query->where('type', $type->value);
     }
 
     public static function boot(): void

@@ -6,6 +6,7 @@ namespace Tests\Unit;
 
 use Appleton\LaravelWallet\Contracts\CurrencyService as CurrencyContract;
 use Appleton\LaravelWallet\Enums\Currency as CurrencyEnum;
+use Appleton\LaravelWallet\Exceptions\InvalidScalarType;
 use Appleton\LaravelWallet\Services\Currency;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
@@ -51,6 +52,21 @@ class CurrencyServiceTest extends TestCase
         $service = new Currency();
 
         $this->assertEquals('USD', $service->getCurrency($currency));
+    }
+
+    public function testGetCurrencyWithModelInvalidScalarWhenAttributeIsNotSet(): void
+    {
+        config()->set('wallet.models.currency.currency_attribute', null);
+
+        $currency = new class extends Model
+        {
+        };
+
+        $service = new Currency();
+
+        $this->expectException(InvalidScalarType::class);
+
+        $service->getCurrency($currency);
     }
 
     /**

@@ -25,7 +25,6 @@ return new class extends Migration
                 $table->unique(['ownable_type', 'ownable_id', 'currency']);
             }
 
-            $table->index(['ownable_type', 'ownable_id']);
             $table->index('currency');
         });
     }

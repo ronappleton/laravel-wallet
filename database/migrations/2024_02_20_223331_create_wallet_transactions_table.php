@@ -19,7 +19,7 @@ return new class extends Migration
 
                 $table->unsignedBigInteger('wallet_id');
                 $table->string('currency');
-                $table->enum('type', ['deposit', 'withdraw']);
+                $table->enum('type', ['deposit', 'withdrawal']);
 
                 $table->decimal('amount',
                     18,
@@ -27,7 +27,6 @@ return new class extends Migration
                     (bool) config('wallet.settings.allow_negative_balances', false)
                 );
 
-                $table->string('description')->nullable();
                 $table->json('meta')->nullable();
 
                 $table->timestamps();
