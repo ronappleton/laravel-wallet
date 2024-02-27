@@ -17,18 +17,18 @@ platforms and for good control of an implementation within a new platform.
 
 ### Feature List
 
-- [ ] Multiple Currencies
-- [ ] Multiple Wallets Per Entity
-- [ ] Single Currency Wallet Locking
-- [ ] Depositing of funds into Wallets
-- [ ] Withdrawal of funds from Wallets
-- [ ] Transferring of funds between Wallets
-- [ ] Full Transaction Logging
-- [ ] Transaction Events
-- [ ] Use string, Model, BackedEnum for Currency
+- [x] Multiple Currencies
+- [x] Multiple Wallets Per Entity
+- [x] Single Currency Wallet Locking
+- [x] Depositing of funds into Wallets
+- [x] Withdrawal of funds from Wallets
+- [x] Transferring of funds between Wallets
+- [x] Full Transaction Logging
+- [x] Transaction Events
+- [x] Use string, Model, BackedEnum for Currency
 
 #### Configurable Options
 
-- [ ] Table names
-- [ ] Use of Uuids or Integers for record ids
-- [ ] Locking of wallets to one per currency per entity
+- [x] Table names
+- [x] Use of Uuids or Integers for record ids
+- [x] Locking of wallets to one per currency per entity
