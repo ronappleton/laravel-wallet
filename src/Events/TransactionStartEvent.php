@@ -14,6 +14,9 @@ class TransactionStartEvent
 {
     use Dispatchable;
 
+    /**
+     * @param array<string, mixed>|WalletMeta $meta
+     */
     public function __construct(
         private readonly TransactionType $type,
         private readonly float $amount,
@@ -33,6 +36,9 @@ class TransactionStartEvent
         return $this->amount;
     }
 
+    /**
+     * @return array<string, mixed>|WalletMeta
+     */
     public function getMeta(): array|WalletMeta
     {
         return $this->meta;

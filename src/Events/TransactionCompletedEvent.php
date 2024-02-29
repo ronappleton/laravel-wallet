@@ -17,7 +17,7 @@ class TransactionCompletedEvent
     public function __construct(
         private readonly TransactionType $type,
         private readonly float $amount,
-        private readonly array|WalletMeta $meta = [],
+        private readonly WalletMeta $meta,
         private readonly ?WalletModel $toWallet = null,
         private readonly ?CurrencyConverter $converter = null
     ) {
@@ -33,7 +33,7 @@ class TransactionCompletedEvent
         return $this->amount;
     }
 
-    public function getMeta(): array|WalletMeta
+    public function getMeta(): WalletMeta
     {
         return $this->meta;
     }

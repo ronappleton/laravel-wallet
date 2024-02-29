@@ -32,7 +32,8 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
             WalletMeta::class,
         );
 
-        $walletModel = (string) config('wallet.models.wallet.model', WalletModel::class);
+        /** @var string $walletModel */
+        $walletModel = config('wallet.models.wallet.model', WalletModel::class);
 
         $this->app->bind(
             WalletModelContract::class,

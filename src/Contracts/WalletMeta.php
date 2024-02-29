@@ -18,4 +18,6 @@ interface WalletMeta extends Arrayable
      * @param  array<string, mixed>  $meta
      */
     public function setMetas(array $meta): self;
+
+    public function setConversionMeta(string $from, string $to, CurrencyConverter $converter): self;
 }

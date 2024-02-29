@@ -9,6 +9,7 @@ use Appleton\LaravelWallet\Contracts\WalletModel;
 use Appleton\LaravelWallet\Enums\TransactionType;
 use Appleton\LaravelWallet\Exceptions\CurrencyMisMatch;
 use Appleton\LaravelWallet\Exceptions\InsufficientFunds;
+use Appleton\LaravelWallet\Exceptions\InvalidModel;
 use Appleton\LaravelWallet\Exceptions\UnsupportedCurrencyConversion;
 
 trait ValidatesTransactions
@@ -36,16 +37,23 @@ trait ValidatesTransactions
         $this->checkBalance($amount);
     }
 
-    public function validateTransfer(WalletModel $toWallet, ?CurrencyConverter $converter = null): void
+    public function validateTransfer(?WalletModel $toWallet, ?CurrencyConverter $converter = null): void
     {
+        if (is_null($toWallet)) {
+            throw new InvalidModel('A wallet to transfer to must be provided');
+        }
+
+        /** @phpstan-ignore-next-line */
         if ($this->currency === $toWallet->currency) {
             return;
         }
 
+        /** @phpstan-ignore-next-line */
         if ($this->currency !== $toWallet->currency && $converter === null) {
             throw new CurrencyMisMatch('Cannot transfer between wallets with different currencies');
         }
 
+        /** @phpstan-ignore-next-line */
         if (! $converter?->isSupported($this->currency, $toWallet->currency)) {
             throw new UnsupportedCurrencyConversion('Currency conversion not supported');
         }

@@ -63,14 +63,20 @@ class Wallet extends Model implements WalletModel
 
     public function deposits(): HasMany
     {
-        return $this->transactions()->where(function (Builder $query) {
+        return $this->transactions()
+            // @phpstan-ignore-next-line
+            ->where(function (Builder $query) {
+                // @phpstan-ignore-next-line
             $query->transactionType(TransactionType::Deposit);
         });
     }
 
     public function withdrawals(): HasMany
     {
-        return $this->transactions()->where(function (Builder $query) {
+        return $this->transactions()
+            // @phpstan-ignore-next-line
+            ->where(function (Builder $query) {
+                // @phpstan-ignore-next-line
             $query->transactionType(TransactionType::Withdrawal);
         });
     }
