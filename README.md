@@ -124,7 +124,9 @@ This event could be used to run fraud checks etc prior to the transaction being 
 
 The second event is dispatched when a transaction is completed.
 
-This event could be used to email a user details of the transaction for example.
+This event could be used to email a user details of the transaction for example, or
+maybe you charge commission on transfers, or for currency conversion and so on,
+a listener could be used to then create those charges.
 
 Both events are fired during every transaction, deposit, withdrawal and transfer.
 
