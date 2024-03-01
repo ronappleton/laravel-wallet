@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Appleton\LaravelWallet\Models;
 
 use Appleton\LaravelWallet\Casts\IdColumnCast;
+use Appleton\LaravelWallet\Contracts\CurrencyConverter;
 use Appleton\LaravelWallet\Contracts\WalletModel;
 use Appleton\LaravelWallet\Enums\TransactionType;
 use Appleton\LaravelWallet\Exceptions\InvalidDeletion;
@@ -16,6 +17,7 @@ use Appleton\TypedConfig\Facades\TypedConfig as Config;
 use BackedEnum;
 use Carbon\Carbon;
 use Database\Factories\WalletFactory;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -37,6 +39,9 @@ use Illuminate\Support\Str;
  * @property Collection $withdrawals
  * @property Collection $transactions
  *
+ * @method static void deposit(float $amount, array $meta = [])
+ * @method static void withdrawal(float $amount, array $meta = [])
+ * @method static void transfer(Wallet $wallet, float $amount, array $meta = [], ?CurrencyConverter $converter = null)
  * @method static WalletFactory factory($count = null, $state = [])
  * @method static Builder whereCurrency(string $currency)
  */
@@ -100,6 +105,36 @@ class Wallet extends Model implements WalletModel
     public function scopeWhereCurrency(Builder $query, string|BackedEnum $currency): Builder
     {
         return $query->where('currency', $currency instanceof BackedEnum ? $currency->value : $currency);
+    }
+
+    /**
+     * @param  array<string|mixed>  $meta
+     *
+     * @throws BindingResolutionException
+     */
+    public function deposit(float $amount, array $meta = []): void
+    {
+        $this->performTransaction(TransactionType::Deposit, $amount, $meta);
+    }
+
+    /**
+     * @param  array<string|mixed>  $meta
+     *
+     * @throws BindingResolutionException
+     */
+    public function withdrawal(float $amount, array $meta = []): void
+    {
+        $this->performTransaction(TransactionType::Withdrawal, $amount, $meta);
+    }
+
+    /**
+     * @param  array<string|mixed>  $meta
+     *
+     * @throws BindingResolutionException
+     */
+    public function transfer(WalletModel $toWallet, float $amount, array $meta = [], ?CurrencyConverter $converter = null): void
+    {
+        $this->performTransaction(TransactionType::Transfer, $amount, $meta, $toWallet, $converter);
     }
 
     public static function boot(): void

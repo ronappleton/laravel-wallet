@@ -20,7 +20,7 @@ trait PerformsTransactions
      *
      * @throws BindingResolutionException
      */
-    public function performTransaction(
+    protected function performTransaction(
         TransactionType $type,
         float $amount,
         array|WalletMeta $meta = [],
@@ -34,15 +34,15 @@ trait PerformsTransactions
         $meta = $this->prepareMetaObject($meta);
 
         match ($type) {
-            TransactionType::Deposit => $this->deposit($amount, $meta),
-            TransactionType::Withdrawal => $this->withdrawal($amount, $meta),
-            TransactionType::Transfer => $this->transfer($toWallet, $amount, $meta, $converter),
+            TransactionType::Deposit => $this->depositAction($amount, $meta),
+            TransactionType::Withdrawal => $this->withdrawalAction($amount, $meta),
+            TransactionType::Transfer => $this->transferAction($toWallet, $amount, $meta, $converter),
         };
 
         event(new TransactionCompletedEvent($type, $amount, $meta, $toWallet, $converter));
     }
 
-    protected function deposit(float $amount, WalletMeta $meta, ?WalletModel $toWallet = null, ?CurrencyConverter $converter = null): int|string
+    protected function depositAction(float $amount, WalletMeta $meta, ?WalletModel $toWallet = null, ?CurrencyConverter $converter = null): int|string
     {
         if ($toWallet !== null && $converter !== null) {
             /** @phpstan-ignore-next-line */
@@ -54,18 +54,18 @@ trait PerformsTransactions
         return $this->recordTransaction(TransactionType::Deposit, $amount, $meta, $toWallet);
     }
 
-    protected function withdrawal(float $amount, WalletMeta $meta): int|string
+    protected function withdrawalAction(float $amount, WalletMeta $meta): int|string
     {
         return $this->recordTransaction(TransactionType::Withdrawal, $amount, $meta);
     }
 
-    protected function transfer(?WalletModel $toWallet, float $amount, WalletMeta $meta, ?CurrencyConverter $converter = null): void
+    protected function transferAction(?WalletModel $toWallet, float $amount, WalletMeta $meta, ?CurrencyConverter $converter = null): void
     {
         DB::transaction(function () use ($toWallet, $amount, $meta, $converter): void {
             /** @phpstan-ignore-next-line */
-            $this->withdrawal($amount, $meta->setToWalletId($toWallet->getAttribute('id')));
+            $this->withdrawalAction($amount, $meta->setToWalletId($toWallet->getAttribute('id')));
             /** @phpstan-ignore-next-line */
-            $toWallet->deposit($amount, $meta->setFromWalletId($this->getAttribute('id')), $toWallet, $converter);
+            $toWallet->depositAction($amount, $meta->setFromWalletId($this->getAttribute('id')), $toWallet, $converter);
         });
     }
 

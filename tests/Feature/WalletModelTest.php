@@ -9,7 +9,6 @@ use Appleton\LaravelWallet\Enums\TransactionType;
 use Appleton\LaravelWallet\Exceptions\CurrencyMisMatch;
 use Appleton\LaravelWallet\Exceptions\InsufficientFunds;
 use Appleton\LaravelWallet\Exceptions\InvalidDeletion;
-use Appleton\LaravelWallet\Exceptions\InvalidModel;
 use Appleton\LaravelWallet\Exceptions\InvalidUpdate;
 use Appleton\LaravelWallet\Exceptions\UnsupportedCurrencyConversion;
 use Appleton\LaravelWallet\Models\Wallet;
@@ -19,6 +18,7 @@ use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
+use TypeError;
 
 class WalletModelTest extends TestCase
 {
@@ -42,7 +42,7 @@ class WalletModelTest extends TestCase
             ->where('ownable_type', $owner::class)
             ->first();
 
-        $wallet->performTransaction(TransactionType::Deposit, 500);
+        $wallet->deposit(500);
 
         $this->assertEquals(500, $wallet->balance());
 
@@ -80,7 +80,7 @@ class WalletModelTest extends TestCase
 
         $this->expectException(InsufficientFunds::class);
 
-        $wallet->performTransaction(TransactionType::Withdrawal, 300);
+        $wallet->withdrawal(300);
     }
 
     /**
@@ -103,7 +103,7 @@ class WalletModelTest extends TestCase
             ->where('ownable_type', $owner::class)
             ->first();
 
-        $wallet->performTransaction(TransactionType::Withdrawal, 300);
+        $wallet->withdrawal(300);
 
         $this->assertEquals(-300.0, $wallet->balance());
 
@@ -138,8 +138,8 @@ class WalletModelTest extends TestCase
             ->where('ownable_type', $owner::class)
             ->first();
 
-        $wallet->performTransaction(TransactionType::Deposit, 500);
-        $wallet->performTransaction(TransactionType::Withdrawal, 300);
+        $wallet->deposit(500);
+        $wallet->withdrawal(300);
 
         $transactions = $wallet->transactions()->get();
 
@@ -163,10 +163,10 @@ class WalletModelTest extends TestCase
             ->where('ownable_type', $owner::class)
             ->first();
 
-        $wallet->performTransaction(TransactionType::Deposit, 100);
-        $wallet->performTransaction(TransactionType::Deposit, 200);
-        $wallet->performTransaction(TransactionType::Deposit, 300);
-        $wallet->performTransaction(TransactionType::Withdrawal, 300);
+        $wallet->deposit(100);
+        $wallet->deposit(200);
+        $wallet->deposit(300);
+        $wallet->withdrawal(300);
 
         $deposits = $wallet->deposits()->get();
 
@@ -190,11 +190,11 @@ class WalletModelTest extends TestCase
             ->where('ownable_type', $owner::class)
             ->first();
 
-        $wallet->performTransaction(TransactionType::Deposit, 1000);
-        $wallet->performTransaction(TransactionType::Withdrawal, 300);
-        $wallet->performTransaction(TransactionType::Withdrawal, 200);
-        $wallet->performTransaction(TransactionType::Withdrawal, 100);
-        $wallet->performTransaction(TransactionType::Withdrawal, 200);
+        $wallet->deposit(1000);
+        $wallet->withdrawal(300);
+        $wallet->withdrawal(200);
+        $wallet->withdrawal(100);
+        $wallet->withdrawal(200);
 
         $withdrawals = $wallet->withdrawals()->get();
 
@@ -254,8 +254,8 @@ class WalletModelTest extends TestCase
             ->skip(1)
             ->first();
 
-        $fromWallet->performTransaction(TransactionType::Deposit, 500);
-        $fromWallet->performTransaction(TransactionType::Transfer, 300, [], $toWallet);
+        $fromWallet->deposit(500);
+        $fromWallet->transfer($toWallet, 300);
 
         $this->assertEquals(200, $fromWallet->balance());
         $this->assertEquals(300, $toWallet->balance());
@@ -290,11 +290,11 @@ class WalletModelTest extends TestCase
             ->skip(1)
             ->first();
 
-        $fromWallet->performTransaction(TransactionType::Deposit, 500);
+        $fromWallet->deposit(500);
 
         $this->expectException(CurrencyMisMatch::class);
 
-        $fromWallet->performTransaction(TransactionType::Transfer, 300, [], $toWallet);
+        $fromWallet->transfer($toWallet, 300);
     }
 
     /**
@@ -326,9 +326,9 @@ class WalletModelTest extends TestCase
             ->skip(1)
             ->first();
 
-        $fromWallet->performTransaction(TransactionType::Deposit, 500);
+        $fromWallet->deposit(500);
 
-        $fromWallet->performTransaction(TransactionType::Transfer, 300, [], $toWallet, $this->createFakeConverter());
+        $fromWallet->transfer($toWallet, 300, [], $this->createFakeConverter());
 
         $this->assertEquals(200, $fromWallet->balance());
         $this->assertEquals(600, $toWallet->balance());
@@ -363,11 +363,11 @@ class WalletModelTest extends TestCase
             ->skip(1)
             ->first();
 
-        $fromWallet->performTransaction(TransactionType::Deposit, 500);
+        $fromWallet->deposit(500);
 
         $this->expectException(UnsupportedCurrencyConversion::class);
 
-        $fromWallet->performTransaction(TransactionType::Transfer, 300, [], $toWallet, $this->createFakeConverter(['USD', 'GBP']));
+        $fromWallet->transfer($toWallet, 300, [], $this->createFakeConverter(['USD', 'GBP']));
     }
 
     public function testWalletUsingUuids(): void
@@ -489,9 +489,9 @@ class WalletModelTest extends TestCase
 
         $wallet = $owner->createWallet('USD');
 
-        $this->expectException(InvalidModel::class);
+        $this->expectException(TypeError::class);
 
-        $wallet->performTransaction(TransactionType::Transfer, 100.00, [], null);
+        $wallet->transfer(null, 100.00, []);
     }
 
     private function createFakeConverter(array $supportedCurrencies = ['USD', 'EUR']): CurrencyConverter

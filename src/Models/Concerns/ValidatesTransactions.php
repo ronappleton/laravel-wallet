@@ -9,13 +9,12 @@ use Appleton\LaravelWallet\Contracts\WalletModel;
 use Appleton\LaravelWallet\Enums\TransactionType;
 use Appleton\LaravelWallet\Exceptions\CurrencyMisMatch;
 use Appleton\LaravelWallet\Exceptions\InsufficientFunds;
-use Appleton\LaravelWallet\Exceptions\InvalidModel;
 use Appleton\LaravelWallet\Exceptions\UnsupportedCurrencyConversion;
 use Appleton\TypedConfig\Facades\TypedConfig as Config;
 
 trait ValidatesTransactions
 {
-    public function validateTransaction(
+    protected function validateTransaction(
         TransactionType $type,
         float $amount,
         ?WalletModel $toWallet = null,
@@ -28,21 +27,22 @@ trait ValidatesTransactions
         };
     }
 
-    public function validateDeposit(float $amount): void
+    protected function validateDeposit(float $amount): void
     {
         // ...
     }
 
-    public function validateWithdrawal(float $amount): void
+    protected function validateWithdrawal(float $amount): void
     {
         $this->checkBalance($amount);
     }
 
-    public function validateTransfer(?WalletModel $toWallet, ?CurrencyConverter $converter = null): void
+    protected function validateTransfer(?WalletModel $toWallet, ?CurrencyConverter $converter = null): void
     {
-        if (is_null($toWallet)) {
-            throw new InvalidModel('A wallet to transfer to must be provided');
-        }
+        assert(
+            $toWallet instanceof WalletModel,
+            'Wallet model must be an instance of '.WalletModel::class
+        );
 
         /** @phpstan-ignore-next-line */
         if ($this->currency === $toWallet->currency) {
@@ -60,7 +60,7 @@ trait ValidatesTransactions
         }
     }
 
-    private function checkBalance(float $amount): void
+    protected function checkBalance(float $amount): void
     {
         $allowNegativeBalances = Config::bool('wallet.allow_negative_balances', false);
 
