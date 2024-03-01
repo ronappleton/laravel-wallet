@@ -9,7 +9,7 @@ use Illuminate\Foundation\Testing\DatabaseMigrations;
 use RuntimeException;
 use Tests\TestCase;
 
-class WalletTransactionsTest extends TestCase
+class WalletTransactionsModelTest extends TestCase
 {
     use DatabaseMigrations;
 
