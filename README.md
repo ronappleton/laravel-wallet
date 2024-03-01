@@ -4,7 +4,7 @@
 
 ## Introduction
 
-Laravel Wallet is a highly configurable wallet system for platform
+Laravel Wallet is a configurable wallet system for platform
 transaction management, it has nothing to do with payment providers
 or the crediting of funds.
 
@@ -23,7 +23,7 @@ Potential Uses:
 - Reward Systems
 - ...
 
-The package is highly configurable to allow for adoption into existing
+The package is configurable to allow for adoption into existing
 platforms and for good control of an implementation within a new platform.
 
 ### Feature List
@@ -41,8 +41,8 @@ platforms and for good control of an implementation within a new platform.
 ### Configurable Options
 
 - [x] Set models for Wallet and Wallet Transactions
-- [x] Use of Uuids or Integers for record ids
-- [x] Allow negative balances
+- [x] Use of Uuids or Integers for record ids (Uuids recommended)
+- [x] Allow negative balances (not recommended)
 - [x] Locking of wallets to one per currency per entity
 - [x] Set wallet and wallet transactions table names
 
@@ -82,4 +82,49 @@ from the transactions table.
 
 This means you may find performance degradation over time and is why you can configure the wallet and
 wallet transaction models via config, so you can tune your approach.
+
+### Moving funds
+
+There is 3 methods on the Wallet Model related to moving funds about:
+
+* deposit(float $amount, array $meta = [])
+* withdrawal(float $amount, array $meta = [])
+* transfer(Wallet $wallet, float $amount, array $meta = [], ?CurrencyConverter $converter = null)
+
+You will notice the array `$meta` parameter to each method.
+
+This is provided for you to add any extra information you may need to record.
+
+```php
+@param array<string, mixed> $meta
+```
+
+It should be noted that the authenticated user will automatically be recorded.
+
+You will also notice the `CurrencyConverter` parameter of the transfer method.
+
+Understandably you may need to convert currencies/points etc.
+
+`CurrencyConverter` is an interface within the package that allows you to pass a
+converter to the method to allow for conversion. The contract sets out the methods
+required for the package to manage the conversions automatically. The conversion metadata
+is also recorded automatically, recording the currencies converted between, the rate used
+and the converter used.
+
+### Events
+
+There are two events within the package that you can listen for:
+
+- `Appleton\LaravelWallet\Events\TransactionStartEvent`
+- `Appleton\LaravelWallet\Events\TransactionCompletedEvent`
+
+The first event is dispatched when a transaction is started.
+
+This event could be used to run fraud checks etc prior to the transaction being completed.
+
+The second event is dispatched when a transaction is completed.
+
+This event could be used to email a user details of the transaction for example.
+
+Both events are fired during every transaction, deposit, withdrawal and transfer.
 

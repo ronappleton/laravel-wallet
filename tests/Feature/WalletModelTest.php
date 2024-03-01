@@ -11,6 +11,7 @@ use Appleton\LaravelWallet\Exceptions\InsufficientFunds;
 use Appleton\LaravelWallet\Exceptions\InvalidDeletion;
 use Appleton\LaravelWallet\Exceptions\InvalidUpdate;
 use Appleton\LaravelWallet\Exceptions\UnsupportedCurrencyConversion;
+use Appleton\LaravelWallet\Exceptions\WalletCreationRetriction;
 use Appleton\LaravelWallet\Models\Wallet;
 use Appleton\LaravelWallet\Models\Wallet as WalletModel;
 use Illuminate\Contracts\Container\BindingResolutionException;
@@ -492,6 +493,22 @@ class WalletModelTest extends TestCase
         $this->expectException(TypeError::class);
 
         $wallet->transfer(null, 100.00, []);
+    }
+
+    public function testMultipleWalletsOfSameCurrencyPrevented(): void
+    {
+        config(['wallet.one_wallet_per_currency' => true]);
+
+        Artisan::call('migrate:fresh');
+
+        $owner = $this->createOwner();
+        $owner->setAttribute('id', 1);
+
+        $owner->createWallet('USD');
+
+        $this->expectException(WalletCreationRetriction::class);
+
+        $owner->createWallet('USD');
     }
 
     private function createFakeConverter(array $supportedCurrencies = ['USD', 'EUR']): CurrencyConverter
