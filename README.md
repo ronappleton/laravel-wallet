@@ -1,4 +1,6 @@
 ![laravel_wallet.jpg](laravel_wallet.jpg)
+<a href="https://codeclimate.com/github/ronappleton/laravel-wallet/maintainability"><img src="https://api.codeclimate.com/v1/badges/530fe18ea3f36c03851a/maintainability" /></a>
+<a href="https://codeclimate.com/github/ronappleton/laravel-wallet/test_coverage"><img src="https://api.codeclimate.com/v1/badges/530fe18ea3f36c03851a/test_coverage" /></a>
 
 # Laravel Wallet
 
