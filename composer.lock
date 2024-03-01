@@ -4,8 +4,64 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "2722a734329b014ce1dd24bbbbdb2933",
-    "packages": [],
+    "content-hash": "60bdca2aedd1e0fb7e56d79135e08649",
+    "packages": [
+        {
+            "name": "ronappleton/laravel-typed-config",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/ronappleton/laravel-typed-config.git",
+                "reference": "37374935f65b3937405519dcc91c63dc4d62739c"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/ronappleton/laravel-typed-config/zipball/37374935f65b3937405519dcc91c63dc4d62739c",
+                "reference": "37374935f65b3937405519dcc91c63dc4d62739c",
+                "shasum": ""
+            },
+            "require-dev": {
+                "larastan/larastan": "^2.9",
+                "laravel/framework": "10.*",
+                "laravel/pint": "^1.14",
+                "orchestra/testbench": "8.*"
+            },
+            "default-branch": true,
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Appleton\\TypedConfig\\ServiceProvider"
+                    ],
+                    "aliases": [
+                        "Appleton\\TypedConfig\\Facades\\TypedConfig"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Tests\\": "tests/",
+                    "Appleton\\TypedConfig\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Ron Appleton",
+                    "email": "ron.appleton@gmail.com"
+                }
+            ],
+            "description": "PHP Stan compliant config helper for Laravel, use config without stan complaining!",
+            "support": {
+                "issues": "https://github.com/ronappleton/laravel-typed-config/issues",
+                "source": "https://github.com/ronappleton/laravel-typed-config/tree/1.0.2"
+            },
+            "time": "2024-02-29T23:02:44+00:00"
+        }
+    ],
     "packages-dev": [
         {
             "name": "brick/math",
@@ -8757,6 +8813,7 @@
     "aliases": [],
     "minimum-stability": "dev",
     "stability-flags": {
+        "ronappleton/laravel-typed-config": 20,
         "laravel/pint": 20,
         "larastan/larastan": 20
     },

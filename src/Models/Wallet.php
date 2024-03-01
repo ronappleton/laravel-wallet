@@ -12,6 +12,8 @@ use Appleton\LaravelWallet\Exceptions\InvalidUpdate;
 use Appleton\LaravelWallet\Models\Concerns\PerformsTransactions;
 use Appleton\LaravelWallet\Models\Concerns\RecordsTransactions;
 use Appleton\LaravelWallet\Models\Concerns\ValidatesTransactions;
+use Appleton\TypedConfig\Facades\TypedConfig as Config;
+use BackedEnum;
 use Carbon\Carbon;
 use Database\Factories\WalletFactory;
 use Illuminate\Database\Eloquent\Builder;
@@ -34,6 +36,9 @@ use Illuminate\Support\Str;
  * @property Collection $deposits
  * @property Collection $withdrawals
  * @property Collection $transactions
+ *
+ * @method static WalletFactory factory($count = null, $state = [])
+ * @method static Builder whereCurrency(string $currency)
  */
 class Wallet extends Model implements WalletModel
 {
@@ -67,8 +72,8 @@ class Wallet extends Model implements WalletModel
             // @phpstan-ignore-next-line
             ->where(function (Builder $query) {
                 // @phpstan-ignore-next-line
-            $query->transactionType(TransactionType::Deposit);
-        });
+                $query->transactionType(TransactionType::Deposit);
+            });
     }
 
     public function withdrawals(): HasMany
@@ -77,8 +82,8 @@ class Wallet extends Model implements WalletModel
             // @phpstan-ignore-next-line
             ->where(function (Builder $query) {
                 // @phpstan-ignore-next-line
-            $query->transactionType(TransactionType::Withdrawal);
-        });
+                $query->transactionType(TransactionType::Withdrawal);
+            });
     }
 
     public function balance(): float
@@ -92,12 +97,17 @@ class Wallet extends Model implements WalletModel
         return $this->hasMany($this->getWalletTransactionModel());
     }
 
+    public function scopeWhereCurrency(Builder $query, string|BackedEnum $currency): Builder
+    {
+        return $query->where('currency', $currency instanceof BackedEnum ? $currency->value : $currency);
+    }
+
     public static function boot(): void
     {
         parent::boot();
 
         static::creating(function (self $wallet): void {
-            if (config('wallet.settings.use_uuids', false) === true) {
+            if (Config::bool('wallet.use_uuids', false) === true) {
                 $wallet->setAttribute('id', (string) Str::orderedUuid());
             }
         });

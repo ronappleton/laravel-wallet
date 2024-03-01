@@ -19,6 +19,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $type
  * @property array $meta
  * @property Wallet $wallet
+ *
+ * @method static WalletTransaction transactionType(TransactionType $type)
  */
 class WalletTransaction extends Model implements WalletTransactionModel
 {

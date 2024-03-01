@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Appleton\TypedConfig\Facades\TypedConfig as Config;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -10,8 +11,8 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create(config('wallet.table_names.wallets', 'wallets'), function (Blueprint $table) {
-            config('wallet.settings.use_uuids', false)
+        Schema::create(Config::string('wallet.wallet_table_name', 'wallets'), function (Blueprint $table) {
+            Config::bool('wallet.use_uuids', false)
                 ? $table->uuid('id')->primary()
                 : $table->id();
 
@@ -21,7 +22,7 @@ return new class extends Migration
 
             $table->timestamp('created_at')->useCurrent();
 
-            if (config('wallet.settings.one_wallet_per_currency', false)) {
+            if (Config::bool('wallet.one_wallet_per_currency', false)) {
                 $table->unique(['ownable_type', 'ownable_id', 'currency']);
             }
 
@@ -31,6 +32,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists(config('wallet.table_names.wallets', 'wallets'));
+        Schema::dropIfExists(Config::string('wallet.wallet_table_name', 'wallets'));
     }
 };

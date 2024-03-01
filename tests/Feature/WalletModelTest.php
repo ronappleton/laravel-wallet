@@ -8,10 +8,15 @@ use Appleton\LaravelWallet\Contracts\CurrencyConverter;
 use Appleton\LaravelWallet\Enums\TransactionType;
 use Appleton\LaravelWallet\Exceptions\CurrencyMisMatch;
 use Appleton\LaravelWallet\Exceptions\InsufficientFunds;
+use Appleton\LaravelWallet\Exceptions\InvalidDeletion;
+use Appleton\LaravelWallet\Exceptions\InvalidModel;
+use Appleton\LaravelWallet\Exceptions\InvalidUpdate;
 use Appleton\LaravelWallet\Exceptions\UnsupportedCurrencyConversion;
+use Appleton\LaravelWallet\Models\Wallet;
 use Appleton\LaravelWallet\Models\Wallet as WalletModel;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
@@ -86,7 +91,7 @@ class WalletModelTest extends TestCase
         $owner = $this->createOwner();
         $owner->setAttribute('id', 1);
 
-        config(['wallet.settings.allow_negative_balances' => true]);
+        config(['wallet.allow_negative_balances' => true]);
 
         WalletModel::factory()->create([
             'ownable_id' => $owner->getAttribute('id'),
@@ -363,6 +368,130 @@ class WalletModelTest extends TestCase
         $this->expectException(UnsupportedCurrencyConversion::class);
 
         $fromWallet->performTransaction(TransactionType::Transfer, 300, [], $toWallet, $this->createFakeConverter(['USD', 'GBP']));
+    }
+
+    public function testWalletUsingUuids(): void
+    {
+        config(['wallet.use_uuids' => true]);
+
+        Artisan::call('migrate:fresh');
+
+        $owner = $this->createOwner();
+        $owner->setAttribute('id', 1);
+
+        WalletModel::factory()->create([
+            'ownable_id' => $owner->getAttribute('id'),
+            'ownable_type' => $owner::class,
+            'currency' => 'USD',
+        ]);
+
+        $this->assertIsString(Wallet::first()->id);
+    }
+
+    public function testUpdatingWalletFails(): void
+    {
+        $owner = $this->createOwner();
+        $owner->setAttribute('id', 1);
+
+        WalletModel::factory()->create([
+            'ownable_id' => $owner->getAttribute('id'),
+            'ownable_type' => $owner::class,
+            'currency' => 'USD',
+        ]);
+
+        $wallet = WalletModel::where('ownable_id', $owner->getAttribute('id'))
+            ->where('ownable_type', $owner::class)
+            ->first();
+
+        $this->expectException(InvalidUpdate::class);
+
+        $wallet->update(['currency' => 'GBP']);
+    }
+
+    public function testDeletingWalletFails(): void
+    {
+        $owner = $this->createOwner();
+        $owner->setAttribute('id', 1);
+
+        WalletModel::factory()->create([
+            'ownable_id' => $owner->getAttribute('id'),
+            'ownable_type' => $owner::class,
+            'currency' => 'USD',
+        ]);
+
+        $wallet = WalletModel::where('ownable_id', $owner->getAttribute('id'))
+            ->where('ownable_type', $owner::class)
+            ->first();
+
+        $this->expectException(InvalidDeletion::class);
+
+        $wallet->delete();
+    }
+
+    public function testGetWallets(): void
+    {
+        $owner = $this->createOwner();
+        $owner->setAttribute('id', 1);
+
+        WalletModel::factory()->create([
+            'ownable_id' => $owner->getAttribute('id'),
+            'ownable_type' => $owner::class,
+            'currency' => 'USD',
+        ]);
+
+        $wallet = WalletModel::where('ownable_id', $owner->getAttribute('id'))
+            ->where('ownable_type', $owner::class)
+            ->first();
+
+        $this->assertCount(1, $owner->wallets()->get());
+    }
+
+    public function testGetWalletsByCurrency(): void
+    {
+        $owner = $this->createOwner();
+        $owner->setAttribute('id', 1);
+
+        WalletModel::factory()->create([
+            'ownable_id' => $owner->getAttribute('id'),
+            'ownable_type' => $owner::class,
+            'currency' => 'USD',
+        ]);
+
+        WalletModel::factory()->create([
+            'ownable_id' => $owner->getAttribute('id'),
+            'ownable_type' => $owner::class,
+            'currency' => 'EUR',
+        ]);
+
+        $wallet = WalletModel::where('ownable_id', $owner->getAttribute('id'))
+            ->where('ownable_type', $owner::class)
+            ->first();
+
+        $this->assertCount(1, $owner->wallets()->whereCurrency('USD')->get());
+    }
+
+    public function testCreateWallet(): void
+    {
+        $owner = $this->createOwner();
+        $owner->setAttribute('id', 1);
+
+        $wallet = $owner->createWallet('USD');
+
+        $this->assertEquals('USD', $wallet->currency);
+        $this->assertEquals($owner->getAttribute('id'), $wallet->ownable_id);
+        $this->assertEquals($owner::class, $wallet->ownable_type);
+    }
+
+    public function testTransferWithNullToWallet(): void
+    {
+        $owner = $this->createOwner();
+        $owner->setAttribute('id', 1);
+
+        $wallet = $owner->createWallet('USD');
+
+        $this->expectException(InvalidModel::class);
+
+        $wallet->performTransaction(TransactionType::Transfer, 100.00, [], null);
     }
 
     private function createFakeConverter(array $supportedCurrencies = ['USD', 'EUR']): CurrencyConverter

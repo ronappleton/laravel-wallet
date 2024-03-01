@@ -9,54 +9,40 @@ return [
     |--------------------------------------------------------------------------
     |
     | These models define those in use by the wallet system.
-    | The Wallet and WalletTransaction models are required, the Currency model
-    | is optional.
     |
     | If using differing wallet or wallet transaction models, you must implement
     | the required Contract for the models, WalletModel, WalletTransactionModel.
     |
     */
-    'models' => [
-        /*
-        |--------------------------------------------------------------------------
-        | Currency Model
-        |--------------------------------------------------------------------------
-        |
-        | The currency model can be either a model class or a BackedEnum class.
-        | If using a model class, the currency_attribute is the attribute on the model.
-        |
-        */
-        'currency' => [
-            'model' => \Appleton\LaravelWallet\Enums\Currency::class,
-            'currency_attribute' => null,
-        ],
-
-        'transaction' => [
-            'model' => \Appleton\LaravelWallet\Models\WalletTransaction::class,
-        ],
-
-        'wallet' => [
-            'model' => \Appleton\LaravelWallet\Models\Wallet::class,
-        ],
-    ],
+    'wallet_model' => \Appleton\LaravelWallet\Models\Wallet::class,
+    'wallet_transaction_model' => \Appleton\LaravelWallet\Models\WalletTransaction::class,
 
     /*
     |--------------------------------------------------------------------------
-    | Settings
+    | Use Uuids
     |--------------------------------------------------------------------------
     |
-    | These settings define the behaviour of the wallet system.
-    |
-    | use_uuids: If true, the wallet and wallet transaction models will use UUIDs.
-    | allow_negative_balances: If true, wallets can have negative balances.
-    | one_wallet_per_currency: If true, a user can only have one wallet per currency.
-    |
+    | If true, the wallet and wallet transaction models will use UUIDs.
     */
-    'settings' => [
-        'use_uuids' => false,
-        'allow_negative_balances' => false,
-        'one_wallet_per_currency' => true,
-    ],
+    'use_uuids' => false,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Allow Negative Balances
+    |--------------------------------------------------------------------------
+    |
+    | Whether a wallet balance can be negative.
+    */
+    'allow_negative_balances' => false,
+
+    /*
+    |--------------------------------------------------------------------------
+    | One Wallet Per Currency
+    |--------------------------------------------------------------------------
+    |
+    | If true, only one wallet can be created per currency per owner.
+    */
+    'one_wallet_per_currency' => true,
 
     /*
     |--------------------------------------------------------------------------
@@ -69,8 +55,6 @@ return [
     | Useful if you are integrating into an existing platform.
     |
     */
-    'table_names' => [
-        'wallets' => 'wallets',
-        'wallet_transactions' => 'wallet_transactions',
-    ],
+    'wallet_table_name' => 'wallets',
+    'wallet_transaction_table_name' => 'wallet_transactions',
 ];

@@ -27,16 +27,15 @@
         "laravel": {
             "providers": [
                 "Appleton\\LaravelWallet\\ServiceProvider"
-            ],
-            "aliases": {
-                "Wallet": "Appleton\\LaravelWallet\\Facades\\Wallet"
-            }
+            ]
         }
     },
     "scripts": {
-        "analyse": "vendor/bin/pint",
-        "format": "vendor/bin/pint --write",
+        "pint": "vendor/bin/pint",
         "test": "vendor/bin/phpunit",
         "stan": "vendor/bin/phpstan analyse"
+    },
+    "require": {
+        "ronappleton/laravel-typed-config": "dev-master"
     }
 }

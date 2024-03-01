@@ -12,12 +12,11 @@ use Appleton\LaravelWallet\Events\TransactionCompletedEvent;
 use Appleton\LaravelWallet\Events\TransactionStartEvent;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Support\Facades\DB;
-use InvalidArgumentException;
 
 trait PerformsTransactions
 {
     /**
-     * @param array<string|mixed>|WalletMeta $meta
+     * @param  array<string|mixed>|WalletMeta  $meta
      *
      * @throws BindingResolutionException
      */
@@ -62,10 +61,6 @@ trait PerformsTransactions
 
     protected function transfer(?WalletModel $toWallet, float $amount, WalletMeta $meta, ?CurrencyConverter $converter = null): void
     {
-        if ($toWallet === null) {
-            throw new InvalidArgumentException('Invalid wallet transfer, no destination wallet provided');
-        }
-
         DB::transaction(function () use ($toWallet, $amount, $meta, $converter): void {
             /** @phpstan-ignore-next-line */
             $this->withdrawal($amount, $meta->setToWalletId($toWallet->getAttribute('id')));
@@ -75,7 +70,7 @@ trait PerformsTransactions
     }
 
     /**
-     * @param array<string|mixed>|WalletMeta $meta
+     * @param  array<string|mixed>|WalletMeta  $meta
      *
      * @throws BindingResolutionException
      */

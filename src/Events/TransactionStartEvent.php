@@ -15,7 +15,7 @@ class TransactionStartEvent
     use Dispatchable;
 
     /**
-     * @param array<string, mixed>|WalletMeta $meta
+     * @param  array<string, mixed>|WalletMeta  $meta
      */
     public function __construct(
         private readonly TransactionType $type,

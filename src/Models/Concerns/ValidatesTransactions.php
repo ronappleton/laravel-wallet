@@ -11,6 +11,7 @@ use Appleton\LaravelWallet\Exceptions\CurrencyMisMatch;
 use Appleton\LaravelWallet\Exceptions\InsufficientFunds;
 use Appleton\LaravelWallet\Exceptions\InvalidModel;
 use Appleton\LaravelWallet\Exceptions\UnsupportedCurrencyConversion;
+use Appleton\TypedConfig\Facades\TypedConfig as Config;
 
 trait ValidatesTransactions
 {
@@ -61,7 +62,7 @@ trait ValidatesTransactions
 
     private function checkBalance(float $amount): void
     {
-        $allowNegativeBalances = config('wallet.settings.allow_negative_balances', false);
+        $allowNegativeBalances = Config::bool('wallet.allow_negative_balances', false);
 
         if (! $allowNegativeBalances && $this->balance() - $amount < 0) {
             throw new InsufficientFunds('Insufficient funds');

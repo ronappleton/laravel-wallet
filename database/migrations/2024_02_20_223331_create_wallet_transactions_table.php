@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Appleton\TypedConfig\Facades\TypedConfig as Config;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -11,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create(
-            config('wallet.table_names.wallet_transactions', 'wallet_transactions'),
+            Config::string('wallet.wallet_transaction_table_name', 'wallet_transactions'),
             function (Blueprint $table) {
-                config('wallet.settings.use_uuids', false)
+                Config::bool('wallet.use_uuids', false)
                     ? $table->uuid('id')
                     : $table->id();
 
@@ -24,7 +25,7 @@ return new class extends Migration
                 $table->decimal('amount',
                     18,
                     10,
-                    (bool) config('wallet.settings.allow_negative_balances', false)
+                    Config::bool('wallet.allow_negative_balances', false)
                 );
 
                 $table->json('meta')->nullable();
@@ -40,6 +41,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists(config('wallet.table_names.wallet_transactions', 'wallet_transactions'));
+        Schema::dropIfExists(Config::string('wallet.wallet_transaction_table_name', 'wallet_transactions'));
     }
 };

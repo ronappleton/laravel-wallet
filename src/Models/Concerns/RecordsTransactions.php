@@ -7,8 +7,8 @@ namespace Appleton\LaravelWallet\Models\Concerns;
 use Appleton\LaravelWallet\Contracts\WalletMeta;
 use Appleton\LaravelWallet\Contracts\WalletModel;
 use Appleton\LaravelWallet\Enums\TransactionType;
-use Appleton\LaravelWallet\Exceptions\InvalidModel;
 use Appleton\LaravelWallet\Models\WalletTransaction;
+use Appleton\TypedConfig\Facades\TypedConfig as Config;
 
 trait RecordsTransactions
 {
@@ -25,12 +25,6 @@ trait RecordsTransactions
 
     protected function getWalletTransactionModel(): string
     {
-        $model = config('wallet.models.transaction.model', WalletTransaction::class);
-
-        if (!is_string($model)) {
-            throw new InvalidModel('The wallet transaction model must be a string');
-        }
-
-        return $model;
+        return Config::classString('wallet.wallet_transaction_model', WalletTransaction::class);
     }
 }
