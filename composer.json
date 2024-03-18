@@ -36,6 +36,6 @@
         "stan": "vendor/bin/phpstan analyse"
     },
     "require": {
-        "ronappleton/laravel-typed-config": "dev-master"
+        "ronappleton/laravel-typed-config": "v1.*"
     }
 }
