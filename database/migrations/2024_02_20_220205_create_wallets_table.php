@@ -18,7 +18,10 @@ return new class extends Migration
 
             $table->string('name')->nullable();
             $table->string('currency');
-            $table->morphs('ownable');
+
+            Config::bool('wallet.use_uuids', false)
+                ? $table->uuidMorphs('ownable')
+                : $table->morphs('ownable');
 
             $table->timestamp('created_at')->useCurrent();
 
