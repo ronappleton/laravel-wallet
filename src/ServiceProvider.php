@@ -37,6 +37,8 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
             __DIR__.'/../config/wallet.php' => config_path('wallet.php'),
         ]);
 
-        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
+        $this->publishes([
+            __DIR__.'/../database/migrations' => database_path('migrations'),
+        ]);
     }
 }
