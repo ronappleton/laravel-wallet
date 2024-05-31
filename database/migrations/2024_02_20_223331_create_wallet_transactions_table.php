@@ -18,7 +18,6 @@ return new class extends Migration
                     ? $table->uuid('id')
                     : $table->id();
 
-                $table->unsignedBigInteger('wallet_id');
                 $table->string('currency');
                 $table->enum('type', ['deposit', 'withdrawal']);
 
