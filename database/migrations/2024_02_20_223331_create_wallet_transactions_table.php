@@ -32,7 +32,9 @@ return new class extends Migration
 
                 $table->timestamps();
 
-                $table->foreign('wallet_id')->references('id')->on('wallets');
+                Config::bool('wallet.use_uuids', false)
+                    ? $table->foreignUuid('wallet_id')->references('id')->on('wallets')
+                    : $table->foreign('wallet_id')->references('id')->on('wallets');
 
                 $table->index('type');
                 $table->index(['wallet_id', 'amount']);
