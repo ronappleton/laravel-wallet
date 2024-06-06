@@ -9,6 +9,7 @@ use Appleton\LaravelWallet\Enums\TransactionType;
 use Appleton\LaravelWallet\Exceptions\InvalidDeletion;
 use Appleton\LaravelWallet\Exceptions\InvalidUpdate;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -24,6 +25,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class WalletTransaction extends Model implements WalletTransactionModel
 {
+    use HasUuids;
+
     /**
      * @var array<int, string>
      */

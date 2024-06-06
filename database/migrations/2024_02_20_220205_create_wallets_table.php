@@ -12,16 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create(Config::string('wallet.wallet_table_name', 'wallets'), function (Blueprint $table) {
-            Config::bool('wallet.use_uuids', false)
-                ? $table->uuid('id')->primary()
-                : $table->id();
+            $table->uuid('id')->primary();
 
             $table->string('name')->nullable();
             $table->string('currency');
 
-            Config::bool('wallet.use_uuids', false)
-                ? $table->uuidMorphs('ownable')
-                : $table->morphs('ownable');
+            $table->uuidMorphs('ownable');
 
             $table->timestamp('created_at')->useCurrent();
 

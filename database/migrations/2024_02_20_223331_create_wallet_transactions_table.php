@@ -14,10 +14,7 @@ return new class extends Migration
         Schema::create(
             Config::string('wallet.wallet_transaction_table_name', 'wallet_transactions'),
             function (Blueprint $table) {
-                Config::bool('wallet.use_uuids', false)
-                    ? $table->uuid('id')
-                    : $table->id();
-
+                $table->uuid('id')->primary();
                 $table->string('currency');
                 $table->enum('type', ['deposit', 'withdrawal']);
 
@@ -31,10 +28,7 @@ return new class extends Migration
 
                 $table->timestamps();
 
-                Config::bool('wallet.use_uuids', false)
-                    ? $table->foreignUuid('wallet_id')->references('id')->on('wallets')
-                    : $table->foreign('wallet_id')->references('id')->on('wallets');
-
+                $table->foreignUuid('wallet_id')->references('id')->on('wallets');
                 $table->index('type');
                 $table->index(['wallet_id', 'amount']);
             });

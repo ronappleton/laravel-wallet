@@ -15,7 +15,6 @@ use Appleton\LaravelWallet\Exceptions\WalletCreationRetriction;
 use Appleton\LaravelWallet\Models\Wallet;
 use Appleton\LaravelWallet\Models\Wallet as WalletModel;
 use Illuminate\Contracts\Container\BindingResolutionException;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
@@ -23,8 +22,6 @@ use TypeError;
 
 class WalletModelTest extends TestCase
 {
-    use DatabaseMigrations;
-
     /**
      * @throws BindingResolutionException
      */
@@ -373,10 +370,6 @@ class WalletModelTest extends TestCase
 
     public function testWalletUsingUuids(): void
     {
-        config(['wallet.use_uuids' => true]);
-
-        Artisan::call('migrate:fresh');
-
         $owner = $this->createOwner();
         $owner->setAttribute('id', 1);
 

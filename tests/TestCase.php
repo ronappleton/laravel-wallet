@@ -7,11 +7,14 @@ namespace Tests;
 use Appleton\LaravelWallet\Models\Concerns\HasWallets;
 use Appleton\LaravelWallet\ServiceProvider;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
 use Orchestra\Testbench\TestCase as BaseTestCase;
 
 class TestCase extends BaseTestCase
 {
+    use RefreshDatabase;
+
     protected function getPackageProviders($app): array
     {
         return [

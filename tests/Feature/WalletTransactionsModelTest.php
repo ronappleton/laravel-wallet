@@ -5,14 +5,11 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use Appleton\LaravelWallet\Models\Wallet;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
 use RuntimeException;
 use Tests\TestCase;
 
 class WalletTransactionsModelTest extends TestCase
 {
-    use DatabaseMigrations;
-
     public function testTransactionCannotBeUpdated(): void
     {
         $wallet = $this->createWallet();

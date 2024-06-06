@@ -19,6 +19,7 @@ use Carbon\Carbon;
 use Database\Factories\WalletFactory;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -51,6 +52,7 @@ class Wallet extends Model implements WalletModel
     use PerformsTransactions;
     use RecordsTransactions;
     use ValidatesTransactions;
+    use HasUuids;
 
     public $timestamps = false;
 
@@ -142,9 +144,7 @@ class Wallet extends Model implements WalletModel
         parent::boot();
 
         static::creating(function (self $wallet): void {
-            if (Config::bool('wallet.use_uuids', false) === true) {
                 $wallet->setAttribute('id', (string) Str::orderedUuid());
-            }
         });
 
         static::updating(function (self $wallet): never {
